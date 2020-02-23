@@ -43,13 +43,15 @@ class CustomGraphModel(nn.Module):
             self.layers.append(MultiHeadGAT(in_feats=out_shape, out_feats=hidden_size,
                                             num_heads=n_heads, residual=True, merge='concat'))
             out_shape = n_heads * hidden_size
-        self.layers.append(MultiHeadGAT(in_feats=out_shape, out_feats=output_size,
-                                        num_heads=n_heads, residual=True, merge='avg'))
+        self.output_layer = MultiHeadGAT(in_feats=out_shape, out_feats=output_size,
+                                         num_heads=n_heads, residual=True, merge='avg')
 
     def forward(self, inputs):
         outputs = inputs
         for i, layer in enumerate(self.layers):
             outputs = layer(self.g, outputs)
+            outputs = torch.relu(outputs)
+        outputs = self.output_layer(self.g, outputs)
         return outputs
 
 
